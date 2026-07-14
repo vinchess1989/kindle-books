@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Magical Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #ec4899;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #c084fc, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .book-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .book-cover {
+            width: 150px;
+            height: 220px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .book-card:hover .book-cover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .book-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.3;
+        }
+
+        .book-author {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0 0 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 80%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+        }
+
+        .download-btn::before {
+            content: '↓';
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Magical Library</h1>
+        <p class="subtitle">An incredible collection of classic adventures. Pick your next journey!</p>
+    </header>
+
+    <div class="library-grid" id="libraryGrid">
+        <!-- Books will be injected here via JavaScript -->
+    </div>
+
+    <script>
+        const books = [
+            { title: "Alice's Adventures in Wonderland", author: "Lewis Carroll", url: "https://www.planetebook.com/free-ebooks/alices-adventures-in-wonderland.pdf", cover: "https://covers.openlibrary.org/b/id/12423719-M.jpg" },
+            { title: "The Wonderful Wizard of Oz", author: "L. Frank Baum", url: "https://www.planetebook.com/free-ebooks/the-wonderful-wizard-of-oz.pdf", cover: "https://covers.openlibrary.org/b/id/14352136-M.jpg" },
+            { title: "Treasure Island", author: "Robert Louis Stevenson", url: "https://www.planetebook.com/free-ebooks/treasure-island.pdf", cover: "https://covers.openlibrary.org/b/id/10574189-M.jpg" },
+            { title: "Peter Pan", author: "J. M. Barrie", url: "https://www.planetebook.com/free-ebooks/peter-pan.pdf", cover: "https://covers.openlibrary.org/b/id/10493866-M.jpg" },
+            { title: "The Secret Garden", author: "Frances Hodgson Burnett", url: "https://www.planetebook.com/free-ebooks/the-secret-garden.pdf", cover: "https://covers.openlibrary.org/b/id/12093121-M.jpg" },
+            { title: "The Adventures of Tom Sawyer", author: "Mark Twain", url: "https://www.planetebook.com/free-ebooks/the-adventures-of-tom-sawyer.pdf", cover: "https://covers.openlibrary.org/b/id/8301710-M.jpg" },
+            { title: "The Wind in the Willows", author: "Kenneth Grahame", url: "https://www.planetebook.com/free-ebooks/the-wind-in-the-willows.pdf", cover: "https://covers.openlibrary.org/b/id/10398433-M.jpg" },
+            { title: "Little Women", author: "Louisa May Alcott", url: "https://www.planetebook.com/free-ebooks/little-women.pdf", cover: "https://covers.openlibrary.org/b/id/8296766-M.jpg" },
+            { title: "Anne of Green Gables", author: "L. M. Montgomery", url: "https://www.planetebook.com/free-ebooks/anne-of-green-gables.pdf", cover: "https://covers.openlibrary.org/b/id/8118002-M.jpg" },
+            { title: "The Jungle Book", author: "Rudyard Kipling", url: "https://www.planetebook.com/free-ebooks/the-jungle-book.pdf", cover: "https://covers.openlibrary.org/b/id/14418652-M.jpg" }
+        ];
+
+        const grid = document.getElementById('libraryGrid');
+
+        books.forEach((book, index) => {
+            const card = document.createElement('div');
+            card.className = 'book-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            card.innerHTML = `
+                <img src="${book.cover}" alt="${book.title} Cover" class="book-cover" onerror="this.src='https://via.placeholder.com/150x220/1e293b/6366f1?text=Book+Cover'">
+                <h3 class="book-title">${book.title}</h3>
+                <p class="book-author">by ${book.author}</p>
+                <a href="${book.url}" class="download-btn" target="_blank" download>Download</a>
+            `;
+            
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>

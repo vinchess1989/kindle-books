@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exhaustive Book Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --secondary: #ec4899;
+            --bg-main: #0f172a;
+            --bg-surface: rgba(30, 41, 59, 0.7);
+            --bg-surface-hover: rgba(51, 65, 85, 0.8);
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 1rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 1rem 0;
+        }
+
+        .table-container {
+            width: 100%;
+            max-width: 98vw;
+            margin: 0 auto;
+            background: var(--bg-surface);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.6);
+            font-weight: 600;
+            position: relative;
+            user-select: none;
+        }
+
+        .th-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            resize: horizontal;
+            overflow: hidden;
+            min-width: 60px;
+            padding-right: 4px;
+        }
+
+        .filter-icon {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            opacity: 0.6;
+        }
+
+        .filter-icon:hover, .filter-icon.active {
+            background: rgba(255,255,255,0.1);
+            opacity: 1;
+        }
+
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            min-width: 200px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            margin-top: 4px;
+        }
+
+        .filter-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            padding: 0.4rem;
+            gap: 0.5rem;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .filter-option:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+        }
+
+        .filter-option input[type="checkbox"] {
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        tbody tr {
+            transition: background 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-surface-hover);
+        }
+
+        .summary-cell {
+            white-space: normal;
+            min-width: 300px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            text-decoration: none;
+            padding: 0.5rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn-kindle {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        .btn-kindle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Advanced Book Explorer</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Use the filter icons in the column headers to find exactly what you're looking for.</p>
+    </header>
+
+    <div class="table-container">
+        <table id="booksTable">
+            <thead>
+                <tr id="tableHeaderRow">
+                    <!-- Headers injected by JS -->
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Rows injected by JS -->
+            </tbody>
+        </table>
+        <div class="no-results" id="noResults">No books found matching the selected filters.</div>
+    </div>
+
+    <script src="books_data.js"></script>
+    <script>
+
+        const columns = [
+            { key: 'title', label: 'Title', filterable: true },
+            { key: 'language', label: 'Language', filterable: true },
+            { key: 'author', label: 'Author', filterable: true },
+            { key: 'pages', label: 'Pages', filterable: true },
+            { key: 'format', label: 'Format', filterable: true },
+            { key: 'size', label: 'Size', filterable: true },
+            { key: 'source', label: 'Source', filterable: true },
+            { key: 'type', label: 'Lit Type', filterable: true },
+            { key: 'year', label: 'Year', filterable: true },
+            { key: 'themes', label: 'Themes/Genres', filterable: true },
+            { key: 'summary', label: '3-Line Summary', filterable: false },
+            { key: 'action', label: 'Download', filterable: false }
+        ];
+
+        let activeFilters = {};
+
+        function init() {
+            renderHeaders();
+            renderBody();
+            setupClickOutside();
+        }
+
+        function renderHeaders() {
+            const tr = document.getElementById('tableHeaderRow');
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                if (col.filterable) {
+                    const uniqueValues = [...new Set(books.map(b => b[col.key]))].sort();
+                    
+                    let dropdownHtml = uniqueValues.map(val => `
+                        <label class="filter-option">
+                            <input type="checkbox" value="${val}" data-col="${col.key}">
+                            ${val}
+                        </label>
+                    `).join('');
+
+                    th.innerHTML = `
+                        <div class="th-content">
+                            ${col.label}
+                            <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                        </div>
+                        <div class="filter-dropdown" id="dropdown-${col.key}">
+                            ${dropdownHtml}
+                        </div>
+                    `;
+
+                    // Setup events
+                    const icon = th.querySelector('.filter-icon');
+                    const dropdown = th.querySelector('.filter-dropdown');
+                    
+                    icon.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Close others
+                        document.querySelectorAll('.filter-dropdown').forEach(d => {
+                            if(d !== dropdown) d.classList.remove('show');
+                        });
+                        dropdown.classList.toggle('show');
+                    });
+
+                    dropdown.addEventListener('click', (e) => e.stopPropagation());
+
+                    const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        cb.addEventListener('change', handleFilterChange);
+                    });
+
+                } else {
+                    th.innerHTML = `<div class="th-content">${col.label}</div>`;
+                }
+                tr.appendChild(th);
+            });
+        }
+
+        function handleFilterChange(e) {
+            const col = e.target.dataset.col;
+            const val = e.target.value;
+            const checked = e.target.checked;
+
+            if (!activeFilters[col]) activeFilters[col] = new Set();
+            
+            if (checked) {
+                activeFilters[col].add(val);
+            } else {
+                activeFilters[col].delete(val);
+            }
+
+            // Update icon styling
+            const th = e.target.closest('th');
+            const icon = th.querySelector('.filter-icon');
+            if(activeFilters[col].size > 0) {
+                icon.classList.add('active');
+                icon.style.stroke = 'var(--secondary)';
+            } else {
+                icon.classList.remove('active');
+                icon.style.stroke = 'currentColor';
+            }
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const tbody = document.getElementById('tableBody');
+            const rows = tbody.querySelectorAll('tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                let show = true;
+                for (const [col, values] of Object.entries(activeFilters)) {
+                    if (values.size > 0) {
+                        const rowVal = row.dataset[col];
+                        if (!values.has(rowVal)) {
+                            show = false;
+                            break;
+                        }
+                    }
+                }
+                row.style.display = show ? '' : 'none';
+                if(show) visibleCount++;
+            });
+
+            document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+            document.getElementById('booksTable').style.display = visibleCount === 0 ? 'none' : 'table';
+        }
+
+        function renderBody() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            books.forEach(book => {
+                const tr = document.createElement('tr');
+                
+                // Add data attributes for filtering
+                columns.forEach(col => {
+                    if(col.filterable) tr.dataset[col.key] = book[col.key];
+                });
+
+                tr.innerHTML = `
+                    <td style="font-weight: 600;">${book.title}</td>
+                    <td><span class="badge">${book.language}</span></td>
+                    <td>${book.author}</td>
+                    <td>${book.pages}</td>
+                    <td><span class="badge" style="background: rgba(236,72,153,0.2); color: #f9a8d4; border-color: rgba(236,72,153,0.3);">${book.format}</span></td>
+                    <td>${book.size}</td>
+                    <td>${book.source}</td>
+                    <td>${book.type}</td>
+                    <td>${book.year}</td>
+                    <td>${book.themes}</td>
+                    <td class="summary-cell">${book.summary}</td>
+                    <td class="actions-cell">
+                        <a href="${book.url}" class="btn-action btn-view" target="_blank">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            View
+                        </a>
+                        <a href="${book.url}" class="btn-action btn-download" download>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Download
+                        </a>
+                        <button onclick="sendToKindle('${book.url}', '${book.title.replace(/'/g, "\\'")}')" class="btn-action btn-kindle">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                            Kindle
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setupClickOutside() {
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('show'));
+            });
+        }
+
+        function sendToKindle(url, title) {
+            let email = localStorage.getItem('kindleEmail');
+            if (!email) {
+                email = prompt("Please enter your Kindle email address (e.g., yourname@kindle.com):");
+                if (email) {
+                    localStorage.setItem('kindleEmail', email);
+                } else {
+                    return; // User cancelled
+                }
+            }
+            
+            // Trigger download first
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Open mailto link
+            const subject = encodeURIComponent("Convert");
+            const body = encodeURIComponent(`I'm sending "${title}" to my Kindle.\n\nRemember to drag and drop the downloaded PDF as an attachment before sending this email!`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        }
+
+        // Initialize on load
+        init();
+
+    </script>
+</body>
+</html>
