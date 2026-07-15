@@ -563,10 +563,10 @@
             const hasFilters = Object.values(activeFilters).some(set => set.size > 0);
             
             if (hasFilters) {
-                status.textContent = \`Showing \${visible} of \${total} books\`;
+                status.textContent = `Showing ${visible} of ${total} books`;
                 clearBtn.classList.add('show');
             } else {
-                status.textContent = \`Total \${total} books\`;
+                status.textContent = `Total ${total} books`;
                 clearBtn.classList.remove('show');
             }
         }
@@ -574,7 +574,7 @@
         function updateFilterChips() {
             columns.forEach(col => {
                 if(!col.filterable) return;
-                const chip = document.querySelector(\`.filter-chip[data-chip="\${col.key}"]\`);
+                const chip = document.querySelector(`.filter-chip[data-chip="${col.key}"]`);
                 if(!chip) return;
                 
                 const set = activeFilters[col.key];
@@ -582,7 +582,7 @@
                     if (set.size === 1) {
                         chip.textContent = Array.from(set)[0];
                     } else {
-                        chip.textContent = \`\${set.size} selected\`;
+                        chip.textContent = `${set.size} selected`;
                     }
                     chip.classList.add('show');
                 } else {
