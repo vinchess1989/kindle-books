@@ -228,6 +228,124 @@
             font-size: 1.2rem;
             display: none;
         }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 0 1rem;
+        }
+
+        .filter-status {
+            color: var(--primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .clear-all-btn {
+            display: none;
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .clear-all-btn.show {
+            display: inline-block;
+        }
+
+        .clear-all-btn:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .filter-chip {
+            display: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            max-width: 160px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: none;
+        }
+
+        .filter-chip.show {
+            display: block;
+        }
+
+        .sortable {
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .sortable:hover { color: var(--primary); }
+        .sort-asc::after { content: " ↑"; }
+        .sort-desc::after { content: " ↓"; }
+
+        .toggle-all-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 6px;
+            transition: background 0.2s;
+        }
+
+        .toggle-all-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown-actions {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .dropdown-action-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .dropdown-action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .clear-col-btn {
+            background: rgba(248, 113, 113, 0.12);
+            color: #f87171;
+        }
+
+        .clear-col-btn:hover {
+            background: rgba(248, 113, 113, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -238,6 +356,10 @@
     </header>
 
     <div class="table-container">
+        <div class="table-toolbar">
+            <div class="filter-status" id="filterStatus"></div>
+            <button type="button" class="clear-all-btn" id="clearAllBtn">Clear all filters</button>
+        </div>
         <table id="booksTable">
             <thead>
                 <tr id="tableHeaderRow">
@@ -270,21 +392,40 @@
         ];
 
         let activeFilters = {};
+        let currentSort = { col: null, asc: true };
 
         function init() {
             renderHeaders();
             renderBody();
             setupClickOutside();
+            
+            document.getElementById('clearAllBtn').addEventListener('click', () => {
+                activeFilters = {};
+                document.querySelectorAll('.filter-option input').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.filter-icon').forEach(icon => {
+                    icon.classList.remove('active');
+                    icon.style.stroke = 'currentColor';
+                });
+                applyFilters();
+            });
+            updateFilterStatus(books.length, books.length);
         }
 
         function renderHeaders() {
             const tr = document.getElementById('tableHeaderRow');
+            tr.innerHTML = '';
             columns.forEach(col => {
                 const th = document.createElement('th');
                 if (col.filterable) {
                     const uniqueValues = [...new Set(books.map(b => b[col.key]))].sort();
                     
-                    let dropdownHtml = uniqueValues.map(val => `
+                    let dropdownHtml = `
+                        <div class="dropdown-actions">
+                            <button type="button" class="dropdown-action-btn toggle-all-btn" data-col="${col.key}">Select All</button>
+                            <button type="button" class="dropdown-action-btn clear-col-btn" data-col="${col.key}">Clear</button>
+                        </div>
+                    `;
+                    dropdownHtml += uniqueValues.map(val => `
                         <label class="filter-option">
                             <input type="checkbox" value="${val}" data-col="${col.key}">
                             ${val}
@@ -292,8 +433,9 @@
                     `).join('');
 
                     th.innerHTML = `
+                        <div class="filter-chip" data-chip="${col.key}"></div>
                         <div class="th-content">
-                            ${col.label}
+                            <div class="sortable ${currentSort.col === col.key ? (currentSort.asc ? 'sort-asc' : 'sort-desc') : ''}" data-sort="${col.key}">${col.label}</div>
                             <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                             </svg>
@@ -320,7 +462,63 @@
 
                     const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
                     checkboxes.forEach(cb => {
+                        // Restore state if re-rendering headers after sort
+                        if(activeFilters[col.key] && activeFilters[col.key].has(cb.value)) {
+                            cb.checked = true;
+                            icon.classList.add('active');
+                            icon.style.stroke = 'var(--secondary)';
+                        }
                         cb.addEventListener('change', handleFilterChange);
+                    });
+
+                    // Select All
+                    th.querySelector('.toggle-all-btn').addEventListener('click', () => {
+                        if (!activeFilters[col.key]) activeFilters[col.key] = new Set();
+                        checkboxes.forEach(cb => {
+                            cb.checked = true;
+                            activeFilters[col.key].add(cb.value);
+                        });
+                        icon.classList.add('active');
+                        icon.style.stroke = 'var(--secondary)';
+                        applyFilters();
+                    });
+
+                    // Clear
+                    th.querySelector('.clear-col-btn').addEventListener('click', () => {
+                        if (activeFilters[col.key]) activeFilters[col.key].clear();
+                        checkboxes.forEach(cb => cb.checked = false);
+                        icon.classList.remove('active');
+                        icon.style.stroke = 'currentColor';
+                        applyFilters();
+                    });
+
+                    // Sort click
+                    th.querySelector('.sortable').addEventListener('click', () => {
+                        if (currentSort.col === col.key) {
+                            currentSort.asc = !currentSort.asc;
+                        } else {
+                            currentSort.col = col.key;
+                            currentSort.asc = true;
+                        }
+                        
+                        books.sort((a, b) => {
+                            let valA = a[col.key] || '';
+                            let valB = b[col.key] || '';
+                            
+                            // Basic numeric sorting if possible
+                            if(!isNaN(parseFloat(valA)) && !isNaN(parseFloat(valB))) {
+                                valA = parseFloat(valA);
+                                valB = parseFloat(valB);
+                            }
+                            
+                            if (valA < valB) return currentSort.asc ? -1 : 1;
+                            if (valA > valB) return currentSort.asc ? 1 : -1;
+                            return 0;
+                        });
+                        
+                        renderHeaders();
+                        renderBody();
+                        applyFilters();
                     });
 
                 } else {
@@ -328,6 +526,8 @@
                 }
                 tr.appendChild(th);
             });
+            
+            updateFilterChips();
         }
 
         function handleFilterChange(e) {
@@ -357,6 +557,40 @@
             applyFilters();
         }
 
+        function updateFilterStatus(visible, total) {
+            const status = document.getElementById('filterStatus');
+            const clearBtn = document.getElementById('clearAllBtn');
+            const hasFilters = Object.values(activeFilters).some(set => set.size > 0);
+            
+            if (hasFilters) {
+                status.textContent = \`Showing \${visible} of \${total} books\`;
+                clearBtn.classList.add('show');
+            } else {
+                status.textContent = \`Total \${total} books\`;
+                clearBtn.classList.remove('show');
+            }
+        }
+
+        function updateFilterChips() {
+            columns.forEach(col => {
+                if(!col.filterable) return;
+                const chip = document.querySelector(\`.filter-chip[data-chip="\${col.key}"]\`);
+                if(!chip) return;
+                
+                const set = activeFilters[col.key];
+                if (set && set.size > 0) {
+                    if (set.size === 1) {
+                        chip.textContent = Array.from(set)[0];
+                    } else {
+                        chip.textContent = \`\${set.size} selected\`;
+                    }
+                    chip.classList.add('show');
+                } else {
+                    chip.classList.remove('show');
+                }
+            });
+        }
+
         function applyFilters() {
             const tbody = document.getElementById('tableBody');
             const rows = tbody.querySelectorAll('tr');
@@ -379,6 +613,9 @@
 
             document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
             document.getElementById('booksTable').style.display = visibleCount === 0 ? 'none' : 'table';
+            
+            updateFilterStatus(visibleCount, books.length);
+            updateFilterChips();
         }
 
         function renderBody() {
