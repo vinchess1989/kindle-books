@@ -239,6 +239,18 @@
             padding: 0 1rem;
         }
 
+        .row-num-col {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        .row-num {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: right;
+            padding-right: 15px;
+        }
+
         .filter-status {
             color: var(--primary);
             font-size: 0.95rem;
@@ -377,6 +389,7 @@
     <script>
 
         const columns = [
+            { key: 'rownum', label: '#', filterable: false },
             { key: 'title', label: 'Title', filterable: true },
             { key: 'language', label: 'Language', filterable: true },
             { key: 'author', label: 'Author', filterable: true },
@@ -408,7 +421,7 @@
                 });
                 applyFilters();
             });
-            updateFilterStatus(books.length, books.length);
+            applyFilters();
         }
 
         function renderHeaders() {
@@ -416,6 +429,8 @@
             tr.innerHTML = '';
             columns.forEach(col => {
                 const th = document.createElement('th');
+                if (col.key === 'rownum') th.classList.add('row-num-col');
+                
                 if (col.filterable) {
                     const uniqueValues = [...new Set(books.map(b => b[col.key]))].sort();
                     
@@ -608,7 +623,11 @@
                     }
                 }
                 row.style.display = show ? '' : 'none';
-                if(show) visibleCount++;
+                if(show) {
+                    visibleCount++;
+                    const rowNumCell = row.querySelector('.row-num');
+                    if (rowNumCell) rowNumCell.textContent = visibleCount;
+                }
             });
 
             document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
@@ -631,6 +650,7 @@
                 });
 
                 tr.innerHTML = `
+                    <td class="row-num"></td>
                     <td style="font-weight: 600;">${book.title}</td>
                     <td><span class="badge">${book.language}</span></td>
                     <td>${book.author}</td>
